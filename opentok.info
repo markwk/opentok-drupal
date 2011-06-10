@@ -1,5 +1,4 @@
 name = OpenTok
 description = OpenTok
-core = 7.x
-configure = admin/config/media/opentok
-files[] = opentok.module
+core = 6.x
+dependencies[] = jquery_update

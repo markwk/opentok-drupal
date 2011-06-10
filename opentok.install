@@ -30,3 +30,11 @@ function opentok_schema() {
   );
   return $schema;
 }
+
+function opentok_install(){
+	drupal_install_schema('opentok');
+}
+
+function opentok_uninstall(){
+	drupal_uninstall_schema('opentok');
+}
