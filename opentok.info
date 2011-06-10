@@ -2,3 +2,4 @@ name = OpenTok
 description = OpenTok
 core = 6.x
 dependencies[] = jquery_update
+dependencies[] = libraries
