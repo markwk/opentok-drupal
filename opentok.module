@@ -258,17 +258,17 @@ function theme_opentok_formatter_default($element){
       ),
     ),'setting');
     drupal_set_html_head('<script type="text/javascript" src="' . $api_js . '"></script>');
-    if ($ba_resize_path = libraries_get_path('jquery.ba-resize')) {
-    	drupal_add_js($ba_resize_path . '/jquery.ba-resize.js');
+    if ($jquery_resize_path = libraries_get_path('jquery-resize')) {
+      drupal_add_js($jquery_resize_path . '/jquery.ba-resize.js');
     }
-    if ($jquery_opentok_path = libraries_get_path('jquery.opentok')) {
-    	drupal_add_js($jquery_opentok_path . '/jquery.opentok.js');
-	    drupal_add_js($jquery_opentok_path . '/jquery.opentok.layout.js');
-	    drupal_add_css($jquery_opentok_path . '/jquery.opentok.css');
-			drupal_add_css($jquery_opentok_path . '/jquery.opentok.layout.css');
+    if ($jquery_opentok_path = libraries_get_path('jquery-opentok')) {
+      drupal_add_js($jquery_opentok_path . '/jquery.opentok.js');
+      drupal_add_js($jquery_opentok_path . '/jquery.opentok.layout.js');
+      drupal_add_css($jquery_opentok_path . '/jquery.opentok.css');
+      drupal_add_css($jquery_opentok_path . '/jquery.opentok.layout.css');
     }
-    if ($json2_path = libraries_get_path('json2')) {
-    	drupal_add_js($json2_path . '/json2.js');
+    if ($json_js_path = libraries_get_path('json-js')) {
+      drupal_add_js($json2_js_path . '/json2.js');
     }
     $opentok_path = drupal_get_path('module', 'opentok');
     drupal_add_js($opentok_path . '/opentok.js');
@@ -421,16 +421,16 @@ function opentok_register_js() {
   global $user;
   if ($user->uid && $opentok_connection = _opentok_drupal_json_decode($_REQUEST['opentok_connection'])) {
     $record = array(
-    	'connection_id' => $opentok_connection['connectionId'],
+      'connection_id' => $opentok_connection['connectionId'],
       'uid' => $user->uid,
       'creation_time' => substr($opentok_connection['creationTime'], 0, 10),
     );
-  	drupal_write_record('opentok_connection', $record);
+    drupal_write_record('opentok_connection', $record);
   }
 }
 
 function opentok_get_connection_uid($connection_id) {
-	return db_result(db_query('SELECT uid FROM {opentok_connection} WHERE connection_id = "%s"', array($connection_id)));
+  return db_result(db_query('SELECT uid FROM {opentok_connection} WHERE connection_id = "%s"', array($connection_id)));
 }
 
 function _opentok_drupal_http_build_query(array $query, $parent = '') {
@@ -521,8 +521,8 @@ function opentok_theme($existing, $type, $theme, $path) {
 
 function theme_opentok_container($element) {
   global $user;
-	$output = "<div id='{$element['id']}' class='opentok-container'><div class='opentok-controls'>";
-	$output .= theme('opentok_connect', $element);
+  $output = "<div id='{$element['id']}' class='opentok-container'><div class='opentok-controls'>";
+  $output .= theme('opentok_connect', $element);
   $output .= theme('opentok_disconnect', $element);
   $output .= theme('opentok_publish', $element);
   $output .= '</div><div class="opentok-streams clear-block"><div class="opentok-publisher-wrapper">';

@@ -3,3 +3,4 @@ description = OpenTok
 core = 6.x
 dependencies[] = jquery_update
 dependencies[] = libraries
+dependencies[] = cck
