@@ -223,14 +223,14 @@ function opentok_widget(&$form, &$form_state, $field, $items, $delta = 0) {
 
 function opentok_field_formatter_info() {
   return array(
-    'opentok_default' => array(
+    'default' => array(
       'label' => t('Default'),
       'field types' => array('opentok'),
     ),
   );
 }
 
-function theme_opentok_formatter_opentok_default($element){
+function theme_opentok_formatter_default($element){
   global $user;
   $field = content_fields($element['#field_name'], $element['#node']->type);
   $api_staging = variable_get('opentok_staging', FALSE);
@@ -462,7 +462,7 @@ function _opentok_drupal_json_decode($var) {
 
 function opentok_theme($existing, $type, $theme, $path) {
   return array(
-    'opentok_formatter_opentok_default' => array(
+    'opentok_formatter_default' => array(
       'arguments' => array('element' => NULL)
     ),
     'opentok_container' => array(
