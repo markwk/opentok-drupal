@@ -258,17 +258,17 @@ function theme_opentok_formatter_default($element){
       ),
     ),'setting');
     drupal_set_html_head('<script type="text/javascript" src="' . $api_js . '"></script>');
-    if ($jquery_resize_path = libraries_get_path('jquery-resize')) {
+    if ($jquery_resize_path = libraries_get_path('jquery.resize')) {
       drupal_add_js($jquery_resize_path . '/jquery.ba-resize.js');
     }
-    if ($jquery_opentok_path = libraries_get_path('jquery-opentok')) {
+    if ($jquery_opentok_path = libraries_get_path('jquery.opentok')) {
       drupal_add_js($jquery_opentok_path . '/jquery.opentok.js');
       drupal_add_js($jquery_opentok_path . '/jquery.opentok.layout.js');
       drupal_add_css($jquery_opentok_path . '/jquery.opentok.css');
       drupal_add_css($jquery_opentok_path . '/jquery.opentok.layout.css');
     }
     if ($json_js_path = libraries_get_path('json-js')) {
-      drupal_add_js($json2_js_path . '/json2.js');
+      drupal_add_js($json_js_path . '/json2.js');
     }
     $opentok_path = drupal_get_path('module', 'opentok');
     drupal_add_js($opentok_path . '/opentok.js');
