@@ -1,7 +1,7 @@
 <?php
 
 define('OPENTOK_TOKEN_SENTINEL', 'T1==');
-define('OPENTOK_SDK_VERSION', 'tbphp-v0.91.2011-02-14');
+define('OPENTOK_SDK_VERSION', 'tbphp-v0.91.2011-08-07');
 define('OPENTOK_STAGING_SERVER', 'https://staging.tokbox.com/hl');
 define('OPENTOK_PRODUCTION_SERVER', 'https://api.opentok.com/hl');
 define('OPENTOK_STAGING_JS', 'http://staging.tokbox.com/v0.91/js/TB.min.js');
@@ -143,6 +143,35 @@ function opentok_field_settings($op, $field){
   }
 }
 
+function opentok_field($op, &$node, $field, &$items, $teaser, $page) {
+  switch($op){
+    case 'presave':
+      if ($field['type'] == 'opentok') {
+        $api_key = variable_get('opentok_api_key', NULL);
+        $api_staging = variable_get('opentok_staging', FALSE);
+
+        foreach ($items as $delta => $item) {
+          if (empty($item['session_id']) || $item['regenerate_session'] || $item['api_key'] != $api_key || $item['api_staging'] != $api_staging) {
+            $items[$delta]['api_key'] = $api_key;
+            $items[$delta]['api_staging'] = $api_staging;
+            $items[$delta]['session_id'] = opentok_create_session(ip_address());
+          }
+        }
+      }
+    break;
+    case 'load':
+      if (empty($items)) {
+        return array();
+      }
+      foreach ($items as $delta => $item) {
+        if (!empty($item['roles'])) {
+          $items[$delta]['roles'] = unserialize($item['roles']);
+        }
+      }
+      return array($field['field_name'] => $items);
+  }
+}
+
 function opentok_content_is_empty($item, $field) {
   return FALSE;
 }
@@ -230,132 +259,32 @@ function opentok_field_formatter_info() {
   );
 }
 
-function theme_opentok_formatter_default($element){
-  global $user;
-  $field = content_fields($element['#field_name'], $element['#node']->type);
-  $api_staging = variable_get('opentok_staging', FALSE);
-  $api_key = variable_get('opentok_api_key', NULL);
-  $api_js = $api_staging ? OPENTOK_STAGING_JS : OPENTOK_PRODUCTION_JS;
-  
-  $item = $element['#item'];
-  if ($item['api_key'] == $api_key && $item['api_staging'] == $api_staging) {
-    $item_id = "{$element['#field_name']}-{$element['#node']->nid}-{$item['#delta']}";
-    $role = opentok_user_role($item['roles']);
-    if ($element['#node']->uid == $user->uid) {
-      $role = opentok_highest_role(array($role, $field['author_role']));
-    }
-    $output = theme('opentok_container', array('id' => $item_id, 'item' => $item));
-    drupal_add_js(array(
-      'openTok' => array(
-        $item_id => array(
-          'sessionId' => $item['session_id'],
-          'apiKey' => $api_key,
-          'connectionToken' => opentok_get_token($item['session_id'], $role),
-          'autoConnect' => (bool)$item['auto_connect'],
-          'autoPublish' => (bool)$item['auto_publish'],
-          'pushTalk' => (bool)$item['push_talk'],
-        ),
-      ),
-    ),'setting');
-    drupal_set_html_head('<script type="text/javascript" src="' . $api_js . '"></script>');
-    if ($jquery_resize_path = libraries_get_path('jquery.resize')) {
-      drupal_add_js($jquery_resize_path . '/jquery.ba-resize.js');
-    }
-    if ($jquery_opentok_path = libraries_get_path('jquery.opentok')) {
-      drupal_add_js($jquery_opentok_path . '/jquery.opentok.js');
-      drupal_add_js($jquery_opentok_path . '/jquery.opentok.layout.js');
-      drupal_add_css($jquery_opentok_path . '/jquery.opentok.css');
-      drupal_add_css($jquery_opentok_path . '/jquery.opentok.layout.css');
-    }
-    if ($json_js_path = libraries_get_path('json-js')) {
-      drupal_add_js($json_js_path . '/json2.js');
-    }
-    $opentok_path = drupal_get_path('module', 'opentok');
-    drupal_add_js($opentok_path . '/opentok.js');
-    drupal_add_css($opentok_path . '/opentok.css');
-  }
-  return $output;
-}
-
-function opentok_field($op, &$node, $field, &$items, $teaser, $page) {
-  switch($op){
-    case 'presave':
-      if ($field['type'] == 'opentok') {
-        $api_key = variable_get('opentok_api_key', NULL);
-        $api_staging = variable_get('opentok_staging', FALSE);
-
-        foreach ($items as $delta => $item) {
-          if (empty($item['session_id']) || $item['regenerate_session'] || $item['api_key'] != $api_key || $item['api_staging'] != $api_staging) {
-            $items[$delta]['api_key'] = $api_key;
-            $items[$delta]['api_staging'] = $api_staging;
-            $items[$delta]['session_id'] = opentok_create_session(ip_address());
-          }
-          /*if (!empty($item['roles'])) {
-            $items[$delta]['roles'] = serialize((array)$item['roles']);
-          }*/
-        }
-      }
-    break;
-    case 'load':
-      if (empty($items)) {
-        return array();
-      }
-      foreach ($items as $delta => $item) {
-        if (!empty($item['roles'])) {
-          $items[$delta]['roles'] = unserialize($item['roles']);
-        }
-      }
-      return array($field['field_name'] => $items);
-  }
-}
-
-function opentok_get_token_js($session_id) {
-  $token = array('connectionToken' => opentok_get_token($session_id));
-  return drupal_json_output($token);
-}
-
-function opentok_get_token($session_id, $role = '', $expire_time = NULL) {
-  if (false) {
-    // TODO: Try to get session from database using OT SessionID.
-  }
-  else{
-    return opentok_generate_token($session_id, $role, $expire_time);
-  }
-}
-
 function opentok_create_session($location, $properties = array()) {
   $properties['location'] = $location;
 
   $create_session_result = _opentok_do_request("/session/create", $properties);
   $create_session_XML = simplexml_load_string($create_session_result, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-  //TODO: check for errors
+  if(!$create_session_XML) {
+    drupal_set_message(t("Failed to create OpenTok session: Invalid response from server"), "error");
+  }
+
+  $errors = $create_session_XML->xpath("//error");
+  if($errors) {
+    $errMsg = $errors[0]->xpath("//@message");
+    if($errMsg) {
+      $errMsg = (string)$errMsg[0]['message'];
+    } else {
+      $errMsg = "Unknown error";
+    }
+    watchdog("Error " . $create_session_XML->error['code'] ." ". $create_session_XML->error->children()->getName() . ": " . $errMsg, WATCHDOG_ERROR);
+  }
+  if(!isset($create_session_XML->Session->session_id)) {
+    drupal_set_message(t("Failed to create OpenTok session."), "error");
+    return NULL;
+  }
 
   return $create_session_XML->Session->session_id;
-}
-
-function _opentok_do_request($url, $data) {
-  $api_key = variable_get('opentok_api_key', NULL);
-  $api_secret = variable_get('opentok_api_secret', NULL);
-  $api_staging = variable_get('opentok_staging', FALSE);
-
-  $api_server = $api_staging ? OPENTOK_STAGING_SERVER : OPENTOK_PRODUCTION_SERVER;
-
-  $url = $api_server . $url;
-
-  if (is_array($data)) {
-    $data['api_key'] = $api_key;
-    $data = _opentok_drupal_http_build_query($data);
-  }
-  
-  $headers = array(
-    'Content-type' => 'application/x-www-form-urlencoded',
-    'X-TB-PARTNER-AUTH' => "{$api_key}:{$api_secret}",
-  );
-
-  $response = drupal_http_request($url, $headers, 'POST', $data);
-
-  return $response->data;
 }
 
 function opentok_generate_token($session_id = '', $role = '', $expire_time = NULL) {
@@ -431,6 +360,30 @@ function opentok_register_js() {
 
 function opentok_get_connection_uid($connection_id) {
   return db_result(db_query('SELECT uid FROM {opentok_connection} WHERE connection_id = "%s"', array($connection_id)));
+}
+
+function _opentok_do_request($url, $data) {
+  $api_key = variable_get('opentok_api_key', NULL);
+  $api_secret = variable_get('opentok_api_secret', NULL);
+  $api_staging = variable_get('opentok_staging', FALSE);
+
+  $api_server = $api_staging ? OPENTOK_STAGING_SERVER : OPENTOK_PRODUCTION_SERVER;
+
+  $url = $api_server . $url;
+
+  if (is_array($data)) {
+    $data['api_key'] = $api_key;
+    $data = _opentok_drupal_http_build_query($data);
+  }
+  
+  $headers = array(
+    'Content-type' => 'application/x-www-form-urlencoded',
+    'X-TB-PARTNER-AUTH' => "{$api_key}:{$api_secret}",
+  );
+
+  $response = drupal_http_request($url, $headers, 'POST', $data);
+
+  return $response->data;
 }
 
 function _opentok_drupal_http_build_query(array $query, $parent = '') {
@@ -517,6 +470,53 @@ function opentok_theme($existing, $type, $theme, $path) {
       'arguments' => array('element' => NULL),
     ),
   );
+}
+
+function theme_opentok_formatter_default($element){
+  global $user;
+  $field = content_fields($element['#field_name'], $element['#node']->type);
+  $api_staging = variable_get('opentok_staging', FALSE);
+  $api_key = variable_get('opentok_api_key', NULL);
+  $api_js = $api_staging ? OPENTOK_STAGING_JS : OPENTOK_PRODUCTION_JS;
+  
+  $item = $element['#item'];
+  if ($item['api_key'] == $api_key && $item['api_staging'] == $api_staging) {
+    $item_id = "{$element['#field_name']}-{$element['#node']->nid}-{$item['#delta']}";
+    $role = opentok_user_role($item['roles']);
+    if ($element['#node']->uid == $user->uid) {
+      $role = opentok_highest_role(array($role, $field['author_role']));
+    }
+    $output = theme('opentok_container', array('id' => $item_id, 'item' => $item));
+    drupal_add_js(array(
+      'openTok' => array(
+        $item_id => array(
+          'sessionId' => $item['session_id'],
+          'apiKey' => $api_key,
+          'connectionToken' => opentok_generate_token($item['session_id'], $role),
+          'autoConnect' => (bool)$item['auto_connect'],
+          'autoPublish' => (bool)$item['auto_publish'],
+          'pushTalk' => (bool)$item['push_talk'],
+        ),
+      ),
+    ),'setting');
+    drupal_set_html_head('<script type="text/javascript" src="' . $api_js . '"></script>');
+    if ($jquery_resize_path = libraries_get_path('jquery.resize')) {
+      drupal_add_js($jquery_resize_path . '/jquery.ba-resize.js');
+    }
+    if ($jquery_opentok_path = libraries_get_path('jquery.opentok')) {
+      drupal_add_js($jquery_opentok_path . '/jquery.opentok.js');
+      drupal_add_js($jquery_opentok_path . '/jquery.opentok.layout.js');
+      drupal_add_css($jquery_opentok_path . '/jquery.opentok.css');
+      drupal_add_css($jquery_opentok_path . '/jquery.opentok.layout.css');
+    }
+    if ($json_js_path = libraries_get_path('json-js')) {
+      drupal_add_js($json_js_path . '/json2.js');
+    }
+    $opentok_path = drupal_get_path('module', 'opentok');
+    drupal_add_js($opentok_path . '/opentok.js');
+    drupal_add_css($opentok_path . '/opentok.css');
+  }
+  return $output;
 }
 
 function theme_opentok_container($element) {
