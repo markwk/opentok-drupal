@@ -25,7 +25,7 @@
   Drupal.openTok.registerConnection = function(e){
     $.ajax({
       type: 'POST',
-      url: Drupal.settings.basePath + 'opentok/register',
+      url: Drupal.settings.basePath + 'opentok/save/connection',
       data: ({opentok_connection: JSON.stringify(e.openTok.eventData.target.connection)})
     });
     $('.opentok-snapshot-publisher', e.openTok.element).hide();
@@ -92,7 +92,7 @@
   Drupal.openTok.getSubscriberWrapper = function(session, stream){
   return $.ajax({
       type: 'POST',
-      url: Drupal.settings.basePath + 'opentok/stream-wrapper',
+      url: Drupal.settings.basePath + 'opentok/get/streamwrapper',
       data: ({opentok_stream: JSON.stringify(stream), opentok_session: JSON.stringify(session)}),
       async: false,
       dataType: 'html'
