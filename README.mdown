@@ -1,0 +1,23 @@
+# OpenTok API Module
+This module allow Drupal sites to add OpenTok Sessions
+to any nodes by adding an OpenTok session field
+
+# Installation and Setup
+* Download this module and add to sites/all/modules directory
+* Download and enable: Libraries module http://drupal.org/project/libraries 
+* Download and enable: http://drupal.org/project/jquery_update
+* Download CCK (http://drupal.org/project/cck) and enable content
+* Download and add to sites/all/libraries: jquery.opentok: https://github.com/markwk/jquery-opentok  => rename directory to: jquery.opentok
+* Download and add to sites/all/libraries: jquery.resize: https://github.com/cowboy/jquery-resize => rename directory to: jquery.resize
+* Download and add to sites/all/libraries: json-js: https://github.com/douglascrockford/JSON-js => rename directory to: json-js
+* After 
+
+# Configure and Setup Content
+* Configure at admin/settings/opentok
+* Add your API Key and Secret
+* Enable "Use OpenTok staging server."
+* Create a new content type or add to a previous content type
+* Add a cck for OpenTok Session
+
+# Create content and configure field for type of video integration
+* 
