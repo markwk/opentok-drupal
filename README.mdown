@@ -20,4 +20,4 @@ to any nodes by adding an OpenTok session field
 * Add a cck for OpenTok Session
 
 # Create content and configure field for type of video integration
-* 
+* Unlike the original API module (see: http://drupal.org/project/opentok), this modified version offers a simplified selection to allow either a single presenter option presentation or a group video chat.
